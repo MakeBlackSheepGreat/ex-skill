@@ -1,0 +1,5 @@
+interface:
+  display_name: "create-ex"
+  short_description: "Distill an ex-partner into an AI skill from chats, photos, and memories."
+policy:
+  allow_implicit_invocation: true

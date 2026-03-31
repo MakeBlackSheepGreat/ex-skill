@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
+[![Codex CLI](https://img.shields.io/badge/Codex%20CLI-Skill-black)](https://developers.openai.com/codex/skills/)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-green)](https://agentskills.io)
 
 &nbsp;
@@ -17,7 +18,7 @@ speaks with their catchphrases, replies in their style, remembers the places you
 
 ⚠️ **This project is for personal reflection and emotional healing only. Not for harassment, stalking, or privacy invasion.**
 
-[Installation](#installation) · [OpenCode](#opencode) · [Usage](#usage) · [Examples](#examples) · [OpenCode Notes](OPENCODE.md) · [中文](README.md)
+[Installation](#installation) · [Codex CLI](#codex-cli) · [OpenCode](#opencode) · [Usage](#usage) · [Examples](#examples) · [Codex CLI Notes](CODEX.md) · [OpenCode Notes](OPENCODE.md) · [中文](README.md)
 
 ---
 
@@ -50,10 +51,32 @@ If you want generated `/{slug}`, `/{slug}-memory`, and `/{slug}-persona` skills 
 
 ```bash
 # macOS / Linux
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
 
 # Windows PowerShell
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
+```
+
+### Codex CLI
+
+Codex CLI scans `~/.agents/skills/<skill-name>/SKILL.md` for user skills, and also supports repo-local `.agents/skills/<skill-name>/SKILL.md`.
+
+```bash
+# macOS / Linux
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.agents/skills/create-ex
+
+# Windows PowerShell
+git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.agents/skills/create-ex"
+```
+
+If you want generated `slug` skills to become directly invocable in Codex CLI, publish them after generation:
+
+```bash
+# macOS / Linux
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime codex
+
+# Windows PowerShell
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime codex
 ```
 
 ### Dependencies (optional)
@@ -78,12 +101,19 @@ In OpenCode, the trigger is the same:
 /create-ex
 ```
 
+In Codex CLI, explicit skill invocation is:
+
+```
+$create-ex
+```
+
 Follow the prompts: enter a codename, basic info, personality traits, then choose data sources. All fields except the codename can be skipped.
 
 After creation:
 
 - Claude Code / OpenClaw: load the generated skill according to each runtime's skill directory rules, then use `/{slug}`
 - OpenCode: publish the generated skill bundle first, then use `/{slug}`
+- Codex CLI: publish first, then invoke with `$<slug>`, `$<slug>-memory`, or `$<slug>-persona`, or let Codex pick the skill implicitly from the description
 
 ### Commands
 
@@ -186,7 +216,7 @@ Each ex Skill has two parts working together:
 
 The architecture of this project is directly inspired by **[colleague-skill (同事.skill)](https://github.com/titanwings/colleague-skill)** by [titanwings](https://github.com/titanwings). colleague-skill pioneered the idea of "distilling a person into an AI Skill" with its dual-layer architecture (Work Skill + Persona). Ex-Partner.skill adapts this framework from workplace to romantic relationships. Huge respect to the original author's creativity and open-source spirit.
 
-This project follows the [AgentSkills](https://agentskills.io) open standard, is compatible with Claude Code and OpenClaw, and now includes an OpenCode install/publish workflow.
+This project follows the [AgentSkills](https://agentskills.io) open standard, is compatible with Claude Code, Codex CLI, and OpenClaw, and now includes OpenCode / Codex CLI install and publish workflows.
 
 ### Recommended Chat Export Tools
 

@@ -39,10 +39,32 @@ git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.confi
 
 ```bash
 # macOS / Linux
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
 
 # Windows PowerShell
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
+```
+
+### Codex CLI 安装
+
+Codex CLI 官方技能目录是 `~/.agents/skills/<skill-name>/SKILL.md`，也支持当前仓库下的 `.agents/skills/<skill-name>/SKILL.md`。
+
+```bash
+# macOS / Linux
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.agents/skills/create-ex
+
+# Windows PowerShell
+git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.agents/skills/create-ex"
+```
+
+如果你已经在仓库内生成了某个前任 Skill，还可以把它发布到 Codex CLI 的技能目录：
+
+```bash
+# macOS / Linux
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime codex
+
+# Windows PowerShell
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime codex
 ```
 
 发布后将生成这三个可直接调用的 skill：
@@ -50,6 +72,12 @@ python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> -
 - `/{slug}`
 - `/{slug}-memory`
 - `/{slug}-persona`
+
+在 Codex CLI 中，对应的显式调用方式是：
+
+- `$<slug>`
+- `$<slug>-memory`
+- `$<slug>-persona`
 
 ---
 

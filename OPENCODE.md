@@ -35,10 +35,10 @@ git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.confi
 
 ```bash
 # macOS / Linux
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
 
 # Windows PowerShell
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
 ```
 
 这条命令会生成并发布三个 skill：
@@ -62,4 +62,5 @@ exes/{slug}/dist/
 - 仓库根目录 `SKILL.md` 现在使用 `{SKILL_DIR}` 作为路径占位符
 - Claude Code 中将其替换为 `${CLAUDE_SKILL_DIR}`
 - OpenCode 中将其替换为 `${HOME}/.config/opencode/skills/create-ex`
-- `tools/skill_writer.py` 负责把本地 `exes/{slug}` 渲染成运行时可加载的 skill 包
+- Codex CLI 中将其替换为 `${HOME}/.agents/skills/create-ex`
+- `tools/skill_writer.py` 负责把本地 `exes/{slug}` 渲染成运行时可加载的 skill 包，并支持 `--runtime opencode` / `--runtime codex`

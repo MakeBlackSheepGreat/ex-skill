@@ -7,6 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![Python 3.9+](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://python.org)
 [![Claude Code](https://img.shields.io/badge/Claude%20Code-Skill-blueviolet)](https://claude.ai/code)
+[![Codex CLI](https://img.shields.io/badge/Codex%20CLI-Skill-black)](https://developers.openai.com/codex/skills/)
 [![AgentSkills](https://img.shields.io/badge/AgentSkills-Standard-green)](https://agentskills.io)
 
 &nbsp;
@@ -17,7 +18,7 @@
 
 ⚠️ **本项目仅用于个人回忆与情感疗愈，不用于骚扰、跟踪或侵犯他人隐私。**
 
-[安装](#安装) · [OpenCode](#opencode) · [使用](#使用) · [效果示例](#效果示例) · [OpenCode 适配说明](OPENCODE.md) · [English](README_EN.md)
+[安装](#安装) · [Codex CLI](#codex-cli) · [OpenCode](#opencode) · [使用](#使用) · [效果示例](#效果示例) · [Codex CLI 适配说明](CODEX.md) · [OpenCode 适配说明](OPENCODE.md) · [English](README_EN.md)
 
 ---
 
@@ -52,10 +53,32 @@ git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.confi
 
 ```bash
 # macOS / Linux
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
 
 # Windows PowerShell
-python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime opencode
+```
+
+### Codex CLI
+
+> Codex CLI 官方技能目录是 `~/.agents/skills/<skill-name>/SKILL.md`，也支持当前仓库下的 `.agents/skills/<skill-name>/SKILL.md`。
+
+```bash
+# macOS / Linux
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.agents/skills/create-ex
+
+# Windows PowerShell
+git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.agents/skills/create-ex"
+```
+
+如果你希望把生成出来的 `slug` 技能也发布到 Codex CLI，可在生成后执行：
+
+```bash
+# macOS / Linux
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime codex
+
+# Windows PowerShell
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --runtime codex
 ```
 
 ### 依赖（可选）
@@ -80,12 +103,19 @@ pip3 install -r requirements.txt
 /create-ex
 ```
 
+如果你在 Codex CLI 中使用，建议显式调用：
+
+```
+$create-ex
+```
+
 按提示输入前任的代号、基本信息、性格画像，然后选择数据来源。所有字段均可跳过，仅凭描述也能生成。
 
 完成后：
 
 - Claude Code / OpenClaw：按各自 skill 目录规则加载后，可直接用 `/{slug}` 调用
 - OpenCode：先执行一次 `publish`，再用 `/{slug}` 调用该前任 Skill
+- Codex CLI：先执行一次 `publish`，再用 `$<slug>`、`$<slug>-memory`、`$<slug>-persona` 显式调用，或让 Codex 按描述自动选用
 
 ### 管理命令
 
@@ -192,7 +222,7 @@ pip3 install -r requirements.txt
 
 ## 项目结构
 
-本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，并补充了 OpenCode 兼容工作流：
+本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，并补充了 OpenCode / Codex CLI 兼容工作流：
 
 ```
 create-ex/
@@ -234,7 +264,7 @@ create-ex/
 
 本项目的架构灵感直接来源于 **[同事.skill](https://github.com/titanwings/colleague-skill)**（by [titanwings](https://github.com/titanwings)）。同事.skill 首创了"把人蒸馏成 AI Skill"的双层架构（Work Skill + Persona），前任.skill 在此基础上将场景从职场迁移到了恋爱关系。致敬原作者的创意和开源精神。
 
-本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，兼容 Claude Code、OpenClaw，并提供 OpenCode 的安装与发布流程。
+本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，兼容 Claude Code、Codex CLI、OpenClaw，并提供 OpenCode / Codex CLI 的安装与发布流程。
 
 ---
 

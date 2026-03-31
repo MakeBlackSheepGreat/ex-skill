@@ -2,10 +2,10 @@
 """Skill 文件管理器
 
 管理前任 Skill 的文件操作：列出、创建目录、生成组合 SKILL.md，
-并导出可发布到 OpenCode / Claude Code / OpenClaw 的运行时 Skill 包。
+并导出可发布到 Codex CLI / OpenCode / Claude Code / OpenClaw 的运行时 Skill 包。
 
 Usage:
-    python3 skill_writer.py --action <list|init|combine|publish> --base-dir <path> [--slug <slug>] [--target-dir <path>]
+    python3 skill_writer.py --action <list|init|combine|publish> --base-dir <path> [--slug <slug>] [--runtime <runtime>] [--target-dir <path>]
 """
 
 import argparse
@@ -13,6 +13,16 @@ import shutil
 import os
 import sys
 import json
+from pathlib import Path
+from typing import Optional
+
+
+RUNTIME_TARGETS = {
+    "codex": Path.home() / ".agents" / "skills",
+    "opencode": Path.home() / ".config" / "opencode" / "skills",
+    "claude-code": Path.home() / ".claude" / "skills",
+    "openclaw": Path.home() / ".openclaw" / "workspace" / "skills",
+}
 
 
 def list_skills(base_dir: str):
@@ -81,7 +91,7 @@ def load_skill_parts(base_dir: str, slug: str):
         print(f"错误：meta.json 不存在 {meta_path}", file=sys.stderr)
         sys.exit(1)
 
-    with open(meta_path, "r", encoding="utf-8") as f:
+    with open(meta_path, "r", encoding="utf-8-sig") as f:
         meta = json.load(f)
 
     memory_content = ""
@@ -118,6 +128,18 @@ def load_skill_parts(base_dir: str, slug: str):
 
 def render_frontmatter(name: str, description: str) -> str:
     return f"---\nname: {name}\ndescription: {description}\nuser-invocable: true\n---\n"
+
+
+def render_openai_metadata(display_name: str, short_description: str) -> str:
+    safe_display_name = display_name.replace('"', '\\"')
+    safe_description = short_description.replace('"', '\\"')
+    return (
+        "interface:\n"
+        f'  display_name: "{safe_display_name}"\n'
+        f'  short_description: "{safe_description}"\n'
+        "policy:\n"
+        "  allow_implicit_invocation: true\n"
+    )
 
 
 def render_full_skill(parts: dict) -> str:
@@ -207,6 +229,25 @@ def render_persona_skill(parts: dict) -> str:
 """
 
 
+def write_variant_bundle(
+    dist_dir: str,
+    variant_name: str,
+    content: str,
+    display_name: str,
+    short_description: str,
+):
+    variant_dir = os.path.join(dist_dir, variant_name)
+    os.makedirs(variant_dir, exist_ok=True)
+
+    with open(os.path.join(variant_dir, "SKILL.md"), "w", encoding="utf-8") as f:
+        f.write(content)
+
+    agents_dir = os.path.join(variant_dir, "agents")
+    os.makedirs(agents_dir, exist_ok=True)
+    with open(os.path.join(agents_dir, "openai.yaml"), "w", encoding="utf-8") as f:
+        f.write(render_openai_metadata(display_name, short_description))
+
+
 def write_runtime_bundle(skill_dir: str, parts: dict):
     """写入本地组合版与 dist 运行时包。"""
     dist_dir = os.path.join(skill_dir, "dist")
@@ -214,20 +255,35 @@ def write_runtime_bundle(skill_dir: str, parts: dict):
 
     full_content = render_full_skill(parts)
     variants = {
-        parts["slug"]: full_content,
-        f"{parts['slug']}-memory": render_memory_skill(parts),
-        f"{parts['slug']}-persona": render_persona_skill(parts),
+        parts["slug"]: {
+            "content": full_content,
+            "display_name": parts["name"],
+            "short_description": parts["description"],
+        },
+        f"{parts['slug']}-memory": {
+            "content": render_memory_skill(parts),
+            "display_name": f"{parts['name']} · Memory",
+            "short_description": f"{parts['name']} 的回忆模式，聚焦共同经历与时间线。",
+        },
+        f"{parts['slug']}-persona": {
+            "content": render_persona_skill(parts),
+            "display_name": f"{parts['name']} · Persona",
+            "short_description": f"{parts['name']} 的性格模式，聚焦说话方式和情绪逻辑。",
+        },
     }
 
     skill_path = os.path.join(skill_dir, "SKILL.md")
     with open(skill_path, "w", encoding="utf-8") as f:
         f.write(full_content)
 
-    for variant_name, content in variants.items():
-        variant_dir = os.path.join(dist_dir, variant_name)
-        os.makedirs(variant_dir, exist_ok=True)
-        with open(os.path.join(variant_dir, "SKILL.md"), "w", encoding="utf-8") as f:
-            f.write(content)
+    for variant_name, variant in variants.items():
+        write_variant_bundle(
+            dist_dir,
+            variant_name,
+            variant["content"],
+            variant["display_name"],
+            variant["short_description"],
+        )
 
     return skill_path, list(variants.keys())
 
@@ -240,11 +296,24 @@ def combine_skill(base_dir: str, slug: str):
     print(f"已生成运行时 Skill 包：{', '.join(variant_names)}")
 
 
-def publish_skill(base_dir: str, slug: str, target_dir: str):
+def resolve_target_dir(runtime: Optional[str], target_dir: Optional[str]) -> str:
+    if target_dir:
+        return target_dir
+    if runtime:
+        return str(RUNTIME_TARGETS[runtime])
+
+    print("错误：publish 需要 --runtime 或 --target-dir 参数", file=sys.stderr)
+    sys.exit(1)
+
+
+def publish_skill(
+    base_dir: str, slug: str, target_dir: Optional[str], runtime: Optional[str]
+):
     """发布 dist 运行时包到目标技能目录。"""
     parts = load_skill_parts(base_dir, slug)
     _, variant_names = write_runtime_bundle(parts["skill_dir"], parts)
 
+    target_dir = resolve_target_dir(runtime, target_dir)
     os.makedirs(target_dir, exist_ok=True)
 
     dist_dir = os.path.join(parts["skill_dir"], "dist")
@@ -255,7 +324,10 @@ def publish_skill(base_dir: str, slug: str, target_dir: str):
             shutil.rmtree(dst_dir)
         shutil.copytree(src_dir, dst_dir)
 
-    print(f"已发布 {len(variant_names)} 个 Skill 到 {target_dir}")
+    if runtime:
+        print(f"已发布 {len(variant_names)} 个 Skill 到 {runtime} 目录：{target_dir}")
+    else:
+        print(f"已发布 {len(variant_names)} 个 Skill 到 {target_dir}")
     for variant_name in variant_names:
         print(f"  /{variant_name}")
 
@@ -267,7 +339,12 @@ def main():
     )
     parser.add_argument("--base-dir", default="./exes", help="基础目录")
     parser.add_argument("--slug", help="前任代号")
-    parser.add_argument("--target-dir", help="发布目标目录")
+    parser.add_argument(
+        "--runtime",
+        choices=sorted(RUNTIME_TARGETS.keys()),
+        help="发布目标运行时（codex / opencode / claude-code / openclaw）",
+    )
+    parser.add_argument("--target-dir", help="发布目标目录（优先级高于 --runtime）")
 
     args = parser.parse_args()
 
@@ -287,10 +364,7 @@ def main():
         if not args.slug:
             print("错误：publish 需要 --slug 参数", file=sys.stderr)
             sys.exit(1)
-        if not args.target_dir:
-            print("错误：publish 需要 --target-dir 参数", file=sys.stderr)
-            sys.exit(1)
-        publish_skill(args.base_dir, args.slug, args.target_dir)
+        publish_skill(args.base_dir, args.slug, args.target_dir, args.runtime)
 
 
 if __name__ == "__main__":

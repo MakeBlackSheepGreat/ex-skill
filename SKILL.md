@@ -2,14 +2,15 @@
 name: create-ex
 description: Distill an ex-partner into an AI Skill. Import WeChat history, photos, social media posts, generate Relationship Memory + Persona, with continuous evolution. | 把前任蒸馏成 AI Skill，导入微信聊天记录、照片、朋友圈，生成 Relationship Memory + Persona，支持持续进化。
 argument-hint: [ex-name-or-slug]
-version: 1.0.0
+version: 1.1.0
 license: MIT
 metadata:
-  version: "1.0.0"
+  version: "1.1.0"
   category: roleplay
   runtimes:
     - claude-code
     - opencode
+    - codex-cli
     - openclaw
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash
@@ -26,6 +27,7 @@ allowed-tools: Read, Write, Edit, Bash
 当用户说以下任意内容时启动：
 
 * `/create-ex`
+* `$create-ex`
 * "帮我创建一个前任 skill"
 * "我想蒸馏一个前任"
 * "新建前任"
@@ -38,16 +40,17 @@ allowed-tools: Read, Write, Edit, Bash
 * "不对" / "ta不会这样说" / "ta应该是这样的"
 * `/update-ex {slug}`
 
-当用户说 `/list-exes` 时列出所有已生成的前任。
+当用户说 `/list-exes`、"列出所有前任"、"list all exes" 时列出所有已生成的前任。
 
 ---
 
 ## 运行时约定
 
-为了同时兼容 Claude Code、OpenCode、OpenClaw，以下文档统一使用 `{SKILL_DIR}` 指代当前 skill 根目录：
+为了同时兼容 Claude Code、OpenCode、Codex CLI、OpenClaw，以下文档统一使用 `{SKILL_DIR}` 指代当前 skill 根目录：
 
 - Claude Code：`{SKILL_DIR} = ${CLAUDE_SKILL_DIR}`
 - OpenCode：`{SKILL_DIR} = ${HOME}/.config/opencode/skills/create-ex`
+- Codex CLI：`{SKILL_DIR} = ${HOME}/.agents/skills/create-ex`，或当前仓库下的 `.agents/skills/create-ex`
 - OpenClaw：`{SKILL_DIR}` 请替换为你的实际安装目录
 
 ## 工具使用规则
@@ -65,7 +68,7 @@ allowed-tools: Read, Write, Edit, Bash
 | 写入/更新 Skill 文件 | `Write` / `Edit` 工具 |
 | 版本管理 | `Bash` → `python3 {SKILL_DIR}/tools/version_manager.py` |
 | 列出已有 Skill | `Bash` → `python3 {SKILL_DIR}/tools/skill_writer.py --action list` |
-| 发布运行时 Skill 包 | `Bash` → `python3 {SKILL_DIR}/tools/skill_writer.py --action publish` |
+| 发布运行时 Skill 包 | `Bash` → `python3 {SKILL_DIR}/tools/skill_writer.py --action publish --runtime <runtime>` |
 
 **基础目录**：Skill 文件写入 `./exes/{slug}/`（相对于本项目目录）。
 
@@ -363,25 +366,42 @@ user-invocable: true
 ✅ 前任 Skill 已创建！
 
 文件位置：exes/{slug}/
-触发词：/{slug}（完整版 — 像ta一样跟你聊天）
-        /{slug}-memory（回忆模式 — 帮你回忆那些事）
-        /{slug}-persona（性格模式 — 仅人物性格）
+Claude Code / OpenCode 触发词：
+  /{slug}（完整版 — 像ta一样跟你聊天）
+  /{slug}-memory（回忆模式 — 帮你回忆那些事）
+  /{slug}-persona（性格模式 — 仅人物性格）
+
+Codex CLI 显式调用：
+  $<slug>
+  $<slug>-memory
+  $<slug>-persona
 
 想聊就聊，觉得哪里不像ta，直接说"ta不会这样"，我来更新。
 不想聊了也没关系。
 ```
 
-**6. 如果运行时是 OpenCode，发布可调用 skill 包**（用 Bash）：
+**6. 如果运行时是 OpenCode 或 Codex CLI，发布可调用 skill 包**（用 Bash）：
 
 ```bash
+# OpenCode
 python3 {SKILL_DIR}/tools/skill_writer.py \
   --action publish \
   --base-dir ./exes \
   --slug {slug} \
-  --target-dir "${HOME}/.config/opencode/skills"
+  --runtime opencode
+
+# Codex CLI
+python3 {SKILL_DIR}/tools/skill_writer.py \
+  --action publish \
+  --base-dir ./exes \
+  --slug {slug} \
+  --runtime codex
 ```
 
-发布后将得到：`/{slug}`、`/{slug}-memory`、`/{slug}-persona`。
+发布后将得到运行时 Skill 包：
+
+- OpenCode：`/{slug}`、`/{slug}-memory`、`/{slug}-persona`
+- Codex CLI：`$<slug>`、`$<slug>-memory`、`$<slug>-persona`
 
 ---
 
@@ -400,7 +420,7 @@ python3 {SKILL_DIR}/tools/skill_writer.py \
 5. 用 `Edit` 工具追加增量内容到对应文件
 6. 重新生成 `SKILL.md`（合并最新 memory.md + persona.md）
 7. 更新 `meta.json` 的 version 和 updated_at
-8. 如果运行时是 OpenCode，再次执行 publish 覆盖已发布 skill 包
+8. 如果运行时是 OpenCode 或 Codex CLI，再次执行 publish 覆盖已发布 skill 包
 
 ---
 
@@ -456,6 +476,7 @@ rm -rf exes/{slug}
 Activate when the user says any of the following:
 
 * `/create-ex`
+* `$create-ex`
 * "Help me create an ex skill"
 * "I want to distill an ex"
 * "New ex"
@@ -468,16 +489,17 @@ Enter evolution mode when the user says:
 * "That's wrong" / "They wouldn't say that" / "They should be like"
 * `/update-ex {slug}`
 
-List all generated exes when the user says `/list-exes`.
+List all generated exes when the user says `/list-exes`, "list all exes", or "show my ex skills".
 
 ---
 
 ## Runtime Conventions
 
-To support Claude Code, OpenCode, and OpenClaw with one skill file, this document uses `{SKILL_DIR}` as the current skill root:
+To support Claude Code, OpenCode, Codex CLI, and OpenClaw with one skill file, this document uses `{SKILL_DIR}` as the current skill root:
 
 - Claude Code: `{SKILL_DIR} = ${CLAUDE_SKILL_DIR}`
 - OpenCode: `{SKILL_DIR} = ${HOME}/.config/opencode/skills/create-ex`
+- Codex CLI: `{SKILL_DIR} = ${HOME}/.agents/skills/create-ex`, or `.agents/skills/create-ex` inside the current repo
 - OpenClaw: replace `{SKILL_DIR}` with your real install path
 
 ## Tool Usage Rules
@@ -495,7 +517,7 @@ This skill runs in a local coding-agent environment and uses the following tools
 | Write / update generated files | `Write` / `Edit` |
 | Version management | `Bash` -> `python3 {SKILL_DIR}/tools/version_manager.py` |
 | List generated Skills | `Bash` -> `python3 {SKILL_DIR}/tools/skill_writer.py --action list` |
-| Publish runtime bundles | `Bash` -> `python3 {SKILL_DIR}/tools/skill_writer.py --action publish` |
+| Publish runtime bundles | `Bash` -> `python3 {SKILL_DIR}/tools/skill_writer.py --action publish --runtime <runtime>` |
 
 Base output directory: `./exes/{slug}/`.
 
@@ -550,17 +572,28 @@ Same flow as Chinese version above. Generates:
 * `exes/{slug}/dist/{slug}-memory/SKILL.md` — Memory-only runtime bundle
 * `exes/{slug}/dist/{slug}-persona/SKILL.md` — Persona-only runtime bundle
 
-If the runtime is OpenCode, publish the generated bundles after creation:
+If the runtime is OpenCode or Codex CLI, publish the generated bundles after creation:
 
 ```bash
+# OpenCode
 python3 {SKILL_DIR}/tools/skill_writer.py \
   --action publish \
   --base-dir ./exes \
   --slug {slug} \
-  --target-dir "${HOME}/.config/opencode/skills"
+  --runtime opencode
+
+# Codex CLI
+python3 {SKILL_DIR}/tools/skill_writer.py \
+  --action publish \
+  --base-dir ./exes \
+  --slug {slug} \
+  --runtime codex
 ```
 
-That publishes `/{slug}`, `/{slug}-memory`, and `/{slug}-persona`.
+That publishes:
+
+* OpenCode -> `/{slug}`, `/{slug}-memory`, `/{slug}-persona`
+* Codex CLI -> `$<slug>`, `$<slug>-memory`, `$<slug>-persona`
 
 ### Execution Rules (in generated SKILL.md)
 
