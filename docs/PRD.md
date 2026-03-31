@@ -2,7 +2,7 @@
 
 ## 产品定位
 
-前任.skill 是一个运行在 Claude Code 上的 meta-skill。
+前任.skill 是一个运行在 Claude Code / OpenCode / OpenClaw 上的 meta-skill。
 用户通过对话式交互提供原材料（聊天记录 + 照片 + 手动描述），系统自动生成一个可独立运行的前任 Persona Skill。
 
 ## 核心概念
@@ -95,19 +95,25 @@ Part A（Memory）补充：结合共同记忆，让回应更真实
 ```
 exes/
   └── {slug}/
-      ├── SKILL.md          # 完整组合版，可直接运行
-      │                     # 触发词: /{slug}
+      ├── SKILL.md          # 完整组合版
       ├── memory.md         # Part A：关系记忆
-      │                     # 触发词: /{slug}-memory
       ├── persona.md        # Part B：人物性格
-      │                     # 触发词: /{slug}-persona
       ├── meta.json         # 元信息
+      ├── dist/             # 可发布的运行时 skill 包
+      │   ├── {slug}/SKILL.md
+      │   ├── {slug}-memory/SKILL.md
+      │   └── {slug}-persona/SKILL.md
       ├── versions/         # 历史版本存档
       └── memories/         # 原始材料存放
           ├── chats/
           ├── photos/
           └── social/
 ```
+
+其中 `dist/` 用于运行时适配：
+
+- Claude Code / OpenClaw 可按各自目录规范复制或软链接对应 skill 文件夹
+- OpenCode 可直接发布到 `~/.config/opencode/skills/`
 
 ## 与同事.skill 的对比
 

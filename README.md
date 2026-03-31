@@ -17,7 +17,7 @@
 
 ⚠️ **本项目仅用于个人回忆与情感疗愈，不用于骚扰、跟踪或侵犯他人隐私。**
 
-[安装](#安装) · [使用](#使用) · [效果示例](#效果示例) · [English](README_EN.md)
+[安装](#安装) · [OpenCode](#opencode) · [使用](#使用) · [效果示例](#效果示例) · [OpenCode 适配说明](OPENCODE.md) · [English](README_EN.md)
 
 ---
 
@@ -30,10 +30,32 @@
 ```bash
 # 安装到当前项目（在 git 仓库根目录执行）
 mkdir -p .claude/skills
-git clone https://github.com/therealXiaomanChu/ex-partner-skill .claude/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill .claude/skills/create-ex
 
 # 或安装到全局（所有项目都能用）
-git clone https://github.com/therealXiaomanChu/ex-partner-skill ~/.claude/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.claude/skills/create-ex
+```
+
+### OpenCode
+
+> OpenCode 默认从 `~/.config/opencode/skills/<skill-name>/SKILL.md` 加载 skill。
+
+```bash
+# macOS / Linux
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.config/opencode/skills/create-ex
+
+# Windows PowerShell
+git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.config/opencode/skills/create-ex"
+```
+
+如果你希望把生成出来的 `/{slug}`、`/{slug}-memory`、`/{slug}-persona` 也注册到 OpenCode，可在生成后执行：
+
+```bash
+# macOS / Linux
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+
+# Windows PowerShell
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
 ```
 
 ### 依赖（可选）
@@ -52,9 +74,18 @@ pip3 install -r requirements.txt
 /create-ex
 ```
 
+如果你在 OpenCode 中使用，触发词同样是：
+
+```
+/create-ex
+```
+
 按提示输入前任的代号、基本信息、性格画像，然后选择数据来源。所有字段均可跳过，仅凭描述也能生成。
 
-完成后用 `/{slug}` 调用该前任 Skill，开始对话。
+完成后：
+
+- Claude Code / OpenClaw：按各自 skill 目录规则加载后，可直接用 `/{slug}` 调用
+- OpenCode：先执行一次 `publish`，再用 `/{slug}` 调用该前任 Skill
 
 ### 管理命令
 
@@ -161,7 +192,7 @@ pip3 install -r requirements.txt
 
 ## 项目结构
 
-本项目遵循 [AgentSkills](https://agentskills.io) 开放标准：
+本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，并补充了 OpenCode 兼容工作流：
 
 ```
 create-ex/
@@ -199,18 +230,11 @@ create-ex/
 
 ---
 
-### 推荐的聊天记录导出工具
-
-以下工具为独立的开源项目，本项目不包含它们的代码，仅在解析器中适配了它们的导出格式：
-
-- **[WeChatMsg](https://github.com/LC044/WeChatMsg)** — 微信聊天记录导出（Windows）
-- **[PyWxDump](https://github.com/xaoyaoo/PyWxDump)** — 微信数据库解密导出（Windows）
-- **留痕** — 微信聊天记录导出（macOS）
 ## 致敬 & 引用
 
 本项目的架构灵感直接来源于 **[同事.skill](https://github.com/titanwings/colleague-skill)**（by [titanwings](https://github.com/titanwings)）。同事.skill 首创了"把人蒸馏成 AI Skill"的双层架构（Work Skill + Persona），前任.skill 在此基础上将场景从职场迁移到了恋爱关系。致敬原作者的创意和开源精神。
 
-本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，兼容 Claude Code 和 OpenClaw。
+本项目遵循 [AgentSkills](https://agentskills.io) 开放标准，兼容 Claude Code、OpenClaw，并提供 OpenCode 的安装与发布流程。
 
 ---
 

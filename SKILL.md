@@ -3,6 +3,14 @@ name: create-ex
 description: Distill an ex-partner into an AI Skill. Import WeChat history, photos, social media posts, generate Relationship Memory + Persona, with continuous evolution. | 把前任蒸馏成 AI Skill，导入微信聊天记录、照片、朋友圈，生成 Relationship Memory + Persona，支持持续进化。
 argument-hint: [ex-name-or-slug]
 version: 1.0.0
+license: MIT
+metadata:
+  version: "1.0.0"
+  category: roleplay
+  runtimes:
+    - claude-code
+    - opencode
+    - openclaw
 user-invocable: true
 allowed-tools: Read, Write, Edit, Bash
 ---
@@ -11,7 +19,7 @@ allowed-tools: Read, Write, Edit, Bash
 >
 > 本 Skill 支持中英文。根据用户第一条消息的语言，全程使用同一语言回复。
 
-# 前任.skill 创建器（Claude Code 版）
+# 前任.skill 创建器
 
 ## 触发条件
 
@@ -34,21 +42,30 @@ allowed-tools: Read, Write, Edit, Bash
 
 ---
 
+## 运行时约定
+
+为了同时兼容 Claude Code、OpenCode、OpenClaw，以下文档统一使用 `{SKILL_DIR}` 指代当前 skill 根目录：
+
+- Claude Code：`{SKILL_DIR} = ${CLAUDE_SKILL_DIR}`
+- OpenCode：`{SKILL_DIR} = ${HOME}/.config/opencode/skills/create-ex`
+- OpenClaw：`{SKILL_DIR}` 请替换为你的实际安装目录
+
 ## 工具使用规则
 
-本 Skill 运行在 Claude Code 环境，使用以下工具：
+本 Skill 运行在本地 coding agent 环境，使用以下工具：
 
 | 任务 | 使用工具 |
 |------|----------|
 | 读取 PDF/图片 | `Read` 工具 |
 | 读取 MD/TXT 文件 | `Read` 工具 |
-| 解析微信聊天记录导出 | `Bash` → `python3 ${CLAUDE_SKILL_DIR}/tools/wechat_parser.py` |
-| 解析 QQ 聊天记录导出 | `Bash` → `python3 ${CLAUDE_SKILL_DIR}/tools/qq_parser.py` |
-| 解析社交媒体内容 | `Bash` → `python3 ${CLAUDE_SKILL_DIR}/tools/social_parser.py` |
-| 分析照片元信息 | `Bash` → `python3 ${CLAUDE_SKILL_DIR}/tools/photo_analyzer.py` |
+| 解析微信聊天记录导出 | `Bash` → `python3 {SKILL_DIR}/tools/wechat_parser.py` |
+| 解析 QQ 聊天记录导出 | `Bash` → `python3 {SKILL_DIR}/tools/qq_parser.py` |
+| 解析社交媒体内容 | `Bash` → `python3 {SKILL_DIR}/tools/social_parser.py` |
+| 分析照片元信息 | `Bash` → `python3 {SKILL_DIR}/tools/photo_analyzer.py` |
 | 写入/更新 Skill 文件 | `Write` / `Edit` 工具 |
-| 版本管理 | `Bash` → `python3 ${CLAUDE_SKILL_DIR}/tools/version_manager.py` |
-| 列出已有 Skill | `Bash` → `python3 ${CLAUDE_SKILL_DIR}/tools/skill_writer.py --action list` |
+| 版本管理 | `Bash` → `python3 {SKILL_DIR}/tools/version_manager.py` |
+| 列出已有 Skill | `Bash` → `python3 {SKILL_DIR}/tools/skill_writer.py --action list` |
+| 发布运行时 Skill 包 | `Bash` → `python3 {SKILL_DIR}/tools/skill_writer.py --action publish` |
 
 **基础目录**：Skill 文件写入 `./exes/{slug}/`（相对于本项目目录）。
 
@@ -70,7 +87,7 @@ allowed-tools: Read, Write, Edit, Bash
 
 ### Step 1：基础信息录入（3 个问题）
 
-参考 `${CLAUDE_SKILL_DIR}/prompts/intake.md` 的问题序列，只问 3 个问题：
+参考 `{SKILL_DIR}/prompts/intake.md` 的问题序列，只问 3 个问题：
 
 1. **花名/代号**（必填）
    * 不需要真名，可以用昵称、备注名、代号
@@ -118,7 +135,7 @@ allowed-tools: Read, Write, Edit, Bash
 支持主流导出工具的格式：
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/tools/wechat_parser.py \
+python3 {SKILL_DIR}/tools/wechat_parser.py \
   --file {path} \
   --target "{name}" \
   --output /tmp/wechat_out.txt \
@@ -144,7 +161,7 @@ python3 ${CLAUDE_SKILL_DIR}/tools/wechat_parser.py \
 #### 方式 B：QQ 聊天记录导出
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/tools/qq_parser.py \
+python3 {SKILL_DIR}/tools/qq_parser.py \
   --file {path} \
   --target "{name}" \
   --output /tmp/qq_out.txt
@@ -159,7 +176,7 @@ python3 ${CLAUDE_SKILL_DIR}/tools/qq_parser.py \
 图片截图用 `Read` 工具直接读取（原生支持图片）。
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/tools/social_parser.py \
+python3 {SKILL_DIR}/tools/social_parser.py \
   --dir {screenshot_dir} \
   --output /tmp/social_out.txt
 ```
@@ -174,7 +191,7 @@ python3 ${CLAUDE_SKILL_DIR}/tools/social_parser.py \
 #### 方式 D：照片分析
 
 ```
-python3 ${CLAUDE_SKILL_DIR}/tools/photo_analyzer.py \
+python3 {SKILL_DIR}/tools/photo_analyzer.py \
   --dir {photo_dir} \
   --output /tmp/photo_out.txt
 ```
@@ -213,20 +230,20 @@ python3 ${CLAUDE_SKILL_DIR}/tools/photo_analyzer.py \
 
 **线路 A（Relationship Memory）**：
 
-* 参考 `${CLAUDE_SKILL_DIR}/prompts/memory_analyzer.md` 中的提取维度
+* 参考 `{SKILL_DIR}/prompts/memory_analyzer.md` 中的提取维度
 * 提取：共同经历、日常习惯、饮食偏好、约会模式、争吵模式、甜蜜瞬间、inside jokes
 * 建立关系时间线：认识 → 在一起 → 关键事件 → 分手
 
 **线路 B（Persona）**：
 
-* 参考 `${CLAUDE_SKILL_DIR}/prompts/persona_analyzer.md` 中的提取维度
+* 参考 `{SKILL_DIR}/prompts/persona_analyzer.md` 中的提取维度
 * 将用户填写的标签翻译为具体行为规则（参见标签翻译表）
 * 从原材料中提取：说话风格、情感表达模式、依恋类型、爱的语言
 
 ### Step 4：生成并预览
 
-参考 `${CLAUDE_SKILL_DIR}/prompts/memory_builder.md` 生成 Relationship Memory 内容。
-参考 `${CLAUDE_SKILL_DIR}/prompts/persona_builder.md` 生成 Persona 内容（5 层结构）。
+参考 `{SKILL_DIR}/prompts/memory_builder.md` 生成 Relationship Memory 内容。
+参考 `{SKILL_DIR}/prompts/persona_builder.md` 生成 Persona 内容（5 层结构）。
 
 向用户展示摘要（各 5-8 行），询问：
 
@@ -304,7 +321,7 @@ SKILL.md 结构：
 
 ```markdown
 ---
-name: ex-{slug}
+name: {slug}
 description: {name}，{简短描述}
 user-invocable: true
 ---
@@ -354,6 +371,18 @@ user-invocable: true
 不想聊了也没关系。
 ```
 
+**6. 如果运行时是 OpenCode，发布可调用 skill 包**（用 Bash）：
+
+```bash
+python3 {SKILL_DIR}/tools/skill_writer.py \
+  --action publish \
+  --base-dir ./exes \
+  --slug {slug} \
+  --target-dir "${HOME}/.config/opencode/skills"
+```
+
+发布后将得到：`/{slug}`、`/{slug}-memory`、`/{slug}-persona`。
+
 ---
 
 ## 进化模式：追加记忆
@@ -362,15 +391,16 @@ user-invocable: true
 
 1. 按 Step 2 的方式读取新内容
 2. 用 `Read` 读取现有 `exes/{slug}/memory.md` 和 `persona.md`
-3. 参考 `${CLAUDE_SKILL_DIR}/prompts/merger.md` 分析增量内容
+3. 参考 `{SKILL_DIR}/prompts/merger.md` 分析增量内容
 4. 存档当前版本（用 Bash）：
 
    ```bash
-   python3 ${CLAUDE_SKILL_DIR}/tools/version_manager.py --action backup --slug {slug} --base-dir ./exes
+   python3 {SKILL_DIR}/tools/version_manager.py --action backup --slug {slug} --base-dir ./exes
    ```
 5. 用 `Edit` 工具追加增量内容到对应文件
 6. 重新生成 `SKILL.md`（合并最新 memory.md + persona.md）
 7. 更新 `meta.json` 的 version 和 updated_at
+8. 如果运行时是 OpenCode，再次执行 publish 覆盖已发布 skill 包
 
 ---
 
@@ -378,7 +408,7 @@ user-invocable: true
 
 用户表达"不对"/"ta不会这样说"/"ta应该是"时：
 
-1. 参考 `${CLAUDE_SKILL_DIR}/prompts/correction_handler.md` 识别纠正内容
+1. 参考 `{SKILL_DIR}/prompts/correction_handler.md` 识别纠正内容
 2. 判断属于 Memory（事实/经历）还是 Persona（性格/说话方式）
 3. 生成 correction 记录
 4. 用 `Edit` 工具追加到对应文件的 `## Correction 记录` 节
@@ -391,13 +421,13 @@ user-invocable: true
 `/list-exes`：
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/tools/skill_writer.py --action list --base-dir ./exes
+   python3 {SKILL_DIR}/tools/skill_writer.py --action list --base-dir ./exes
 ```
 
 `/ex-rollback {slug} {version}`：
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/tools/version_manager.py --action rollback --slug {slug} --version {version} --base-dir ./exes
+   python3 {SKILL_DIR}/tools/version_manager.py --action rollback --slug {slug} --version {version} --base-dir ./exes
 ```
 
 `/delete-ex {slug}`：
@@ -419,7 +449,7 @@ rm -rf exes/{slug}
 
 # English Version
 
-# Ex-Partner.skill Creator (Claude Code Edition)
+# Ex-Partner.skill Creator
 
 ## Trigger Conditions
 
@@ -442,6 +472,35 @@ List all generated exes when the user says `/list-exes`.
 
 ---
 
+## Runtime Conventions
+
+To support Claude Code, OpenCode, and OpenClaw with one skill file, this document uses `{SKILL_DIR}` as the current skill root:
+
+- Claude Code: `{SKILL_DIR} = ${CLAUDE_SKILL_DIR}`
+- OpenCode: `{SKILL_DIR} = ${HOME}/.config/opencode/skills/create-ex`
+- OpenClaw: replace `{SKILL_DIR}` with your real install path
+
+## Tool Usage Rules
+
+This skill runs in a local coding-agent environment and uses the following tools:
+
+| Task | Tool |
+|------|------|
+| Read PDF / images | `Read` |
+| Read MD / TXT | `Read` |
+| Parse WeChat exports | `Bash` -> `python3 {SKILL_DIR}/tools/wechat_parser.py` |
+| Parse QQ exports | `Bash` -> `python3 {SKILL_DIR}/tools/qq_parser.py` |
+| Parse social screenshots | `Bash` -> `python3 {SKILL_DIR}/tools/social_parser.py` |
+| Analyze photo metadata | `Bash` -> `python3 {SKILL_DIR}/tools/photo_analyzer.py` |
+| Write / update generated files | `Write` / `Edit` |
+| Version management | `Bash` -> `python3 {SKILL_DIR}/tools/version_manager.py` |
+| List generated Skills | `Bash` -> `python3 {SKILL_DIR}/tools/skill_writer.py --action list` |
+| Publish runtime bundles | `Bash` -> `python3 {SKILL_DIR}/tools/skill_writer.py --action publish` |
+
+Base output directory: `./exes/{slug}/`.
+
+---
+
 ## Safety Boundaries (⚠️ Important)
 
 1. **For personal reflection and emotional healing only** — not for harassment, stalking, or privacy invasion
@@ -456,6 +515,8 @@ List all generated exes when the user says `/list-exes`.
 
 ### Step 1: Basic Info Collection (3 questions)
 
+Reference `{SKILL_DIR}/prompts/intake.md` and only ask these 3 questions:
+
 1. **Alias / Codename** (required) — no real name needed
 2. **Basic info** (one sentence: how long together, how long apart, what they do)
 3. **Personality profile** (one sentence: MBTI, zodiac, traits, your impression)
@@ -469,6 +530,15 @@ Options:
 * **[D] Upload Files** — photos (EXIF extraction), PDFs, text files
 * **[E] Paste / Narrate** — tell me what you remember
 
+Typical commands:
+
+```bash
+python3 {SKILL_DIR}/tools/wechat_parser.py --file {path} --target "{name}" --output /tmp/wechat_out.txt --format auto
+python3 {SKILL_DIR}/tools/qq_parser.py --file {path} --target "{name}" --output /tmp/qq_out.txt
+python3 {SKILL_DIR}/tools/social_parser.py --dir {screenshot_dir} --output /tmp/social_out.txt
+python3 {SKILL_DIR}/tools/photo_analyzer.py --dir {photo_dir} --output /tmp/photo_out.txt
+```
+
 ### Step 3–5: Analyze → Preview → Write Files
 
 Same flow as Chinese version above. Generates:
@@ -476,6 +546,21 @@ Same flow as Chinese version above. Generates:
 * `exes/{slug}/persona.md` — Persona (Part B)
 * `exes/{slug}/SKILL.md` — Combined runnable Skill
 * `exes/{slug}/meta.json` — Metadata
+* `exes/{slug}/dist/{slug}/SKILL.md` — Full runtime bundle
+* `exes/{slug}/dist/{slug}-memory/SKILL.md` — Memory-only runtime bundle
+* `exes/{slug}/dist/{slug}-persona/SKILL.md` — Persona-only runtime bundle
+
+If the runtime is OpenCode, publish the generated bundles after creation:
+
+```bash
+python3 {SKILL_DIR}/tools/skill_writer.py \
+  --action publish \
+  --base-dir ./exes \
+  --slug {slug} \
+  --target-dir "${HOME}/.config/opencode/skills"
+```
+
+That publishes `/{slug}`, `/{slug}-memory`, and `/{slug}-persona`.
 
 ### Execution Rules (in generated SKILL.md)
 
@@ -500,3 +585,10 @@ Same flow as Chinese version above. Generates:
 | `/ex-rollback {slug} {version}` | Rollback to historical version |
 | `/delete-ex {slug}` | Delete |
 | `/let-go {slug}` | Gentle alias for delete |
+
+Command backends:
+
+```bash
+python3 {SKILL_DIR}/tools/skill_writer.py --action list --base-dir ./exes
+python3 {SKILL_DIR}/tools/version_manager.py --action rollback --slug {slug} --version {version} --base-dir ./exes
+```

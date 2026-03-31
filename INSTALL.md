@@ -8,20 +8,48 @@
 
 ```bash
 mkdir -p .claude/skills
-git clone https://github.com/therealXiaomanChu/ex-partner-skill .claude/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill .claude/skills/create-ex
 ```
 
 ### 全局安装
 
 ```bash
-git clone https://github.com/therealXiaomanChu/ex-partner-skill ~/.claude/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.claude/skills/create-ex
 ```
 
 ### OpenClaw 安装
 
 ```bash
-git clone https://github.com/therealXiaomanChu/ex-partner-skill ~/.openclaw/workspace/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.openclaw/workspace/skills/create-ex
 ```
+
+### OpenCode 安装
+
+OpenCode 默认从 `~/.config/opencode/skills/<skill-name>/SKILL.md` 读取 skill。
+
+```bash
+# macOS / Linux
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.config/opencode/skills/create-ex
+
+# Windows PowerShell
+git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.config/opencode/skills/create-ex"
+```
+
+如果你已经在仓库内生成了某个前任 Skill，还可以把它发布到 OpenCode 的技能目录：
+
+```bash
+# macOS / Linux
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+
+# Windows PowerShell
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
+```
+
+发布后将生成这三个可直接调用的 skill：
+
+- `/{slug}`
+- `/{slug}-memory`
+- `/{slug}-persona`
 
 ---
 

@@ -17,7 +17,7 @@ speaks with their catchphrases, replies in their style, remembers the places you
 
 ⚠️ **This project is for personal reflection and emotional healing only. Not for harassment, stalking, or privacy invasion.**
 
-[Installation](#installation) · [Usage](#usage) · [Examples](#examples) · [中文](README.md)
+[Installation](#installation) · [OpenCode](#opencode) · [Usage](#usage) · [Examples](#examples) · [OpenCode Notes](OPENCODE.md) · [中文](README.md)
 
 ---
 
@@ -28,10 +28,32 @@ speaks with their catchphrases, replies in their style, remembers the places you
 ```bash
 # Install to current project
 mkdir -p .claude/skills
-git clone https://github.com/therealXiaomanChu/ex-partner-skill .claude/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill .claude/skills/create-ex
 
 # Or install globally
-git clone https://github.com/therealXiaomanChu/ex-partner-skill ~/.claude/skills/create-ex
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.claude/skills/create-ex
+```
+
+### OpenCode
+
+OpenCode loads skills from `~/.config/opencode/skills/<skill-name>/SKILL.md` by default.
+
+```bash
+# macOS / Linux
+git clone https://github.com/therealXiaomanChu/ex-skill ~/.config/opencode/skills/create-ex
+
+# Windows PowerShell
+git clone https://github.com/therealXiaomanChu/ex-skill "$env:USERPROFILE/.config/opencode/skills/create-ex"
+```
+
+If you want generated `/{slug}`, `/{slug}-memory`, and `/{slug}-persona` skills to become directly invocable in OpenCode, run this once after generation:
+
+```bash
+# macOS / Linux
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$HOME/.config/opencode/skills"
+
+# Windows PowerShell
+python3 tools/skill_writer.py --action publish --base-dir ./exes --slug <slug> --target-dir "$env:USERPROFILE/.config/opencode/skills"
 ```
 
 ### Dependencies (optional)
@@ -50,9 +72,18 @@ In Claude Code, type:
 /create-ex
 ```
 
+In OpenCode, the trigger is the same:
+
+```
+/create-ex
+```
+
 Follow the prompts: enter a codename, basic info, personality traits, then choose data sources. All fields except the codename can be skipped.
 
-After creation, use `/{slug}` to chat with the generated ex Skill.
+After creation:
+
+- Claude Code / OpenClaw: load the generated skill according to each runtime's skill directory rules, then use `/{slug}`
+- OpenCode: publish the generated skill bundle first, then use `/{slug}`
 
 ### Commands
 
@@ -155,7 +186,7 @@ Each ex Skill has two parts working together:
 
 The architecture of this project is directly inspired by **[colleague-skill (同事.skill)](https://github.com/titanwings/colleague-skill)** by [titanwings](https://github.com/titanwings). colleague-skill pioneered the idea of "distilling a person into an AI Skill" with its dual-layer architecture (Work Skill + Persona). Ex-Partner.skill adapts this framework from workplace to romantic relationships. Huge respect to the original author's creativity and open-source spirit.
 
-This project follows the [AgentSkills](https://agentskills.io) open standard, compatible with Claude Code and OpenClaw.
+This project follows the [AgentSkills](https://agentskills.io) open standard, is compatible with Claude Code and OpenClaw, and now includes an OpenCode install/publish workflow.
 
 ### Recommended Chat Export Tools
 
